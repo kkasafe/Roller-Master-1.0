@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Rolador de Dados RPG</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        text-align: center;
+        transition: 0.3s;
+    }
+
+    :root {
+        --bg: #f5f5f5;
+        --text: #000;
+        --box-bg: #555;
+        --inner-bg: #666;
+    }
+
+    .dark {
+        --bg: #1a1a1a;
+        --text: #fff;
+        --box-bg: #333;
+        --inner-bg: #444;
+    }
+
+    #themeToggle {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        background: #000;
+        color: #fff;
+        padding: 10px 15px;
+        border-radius: 12px;
+        cursor: pointer;
+        border: none;
+        font-size: 16px;
+        font-weight: bold;
+    }
+
+    .caixa {
+        width: 70%;
+        margin: 40px auto;
+        padding: 60px;
+        background: var(--box-bg);
+        border-radius: 30px;
+    }
+
+    #resultadoBox {
+        width: 60%;
+        margin: auto;
+        padding: 50px;
+        background: var(--inner-bg);
+        color: var(--text);
+        border: 3px solid #222;
+        border-radius: 40px;
+        font-size: 48px;
+        font-weight: bold;
+        transition: transform 0.2s;
+    }
+
+    .inputs {
+        margin: 30px;
+        font-size: 28px;
+    }
+
+    .inputs input {
+        width: 90px;
+        font-size: 26px;
+        text-align: center;
+        margin: 0 5px;
+    }
+
+    button {
+        margin: 20px;
+        padding: 15px 40px;
+        font-size: 26px;
+        font-weight: bold;
+        border-radius: 20px;
+        cursor: pointer;
+        border: none;
+    }
+
+    #rollBtn { background: #009944; color: white; }
+    #resetBtn { background: #cc0000; color: white; }
+    #rollBtn:active, #resetBtn:active { transform: scale(0.95); }
+
+    .delayContainer {
+        margin-top: 40px;
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+        align-items: center;
+    }
+
+    .delayBox {
+        background: var(--box-bg);
+        padding: 20px;
+        border-radius: 20px;
+        color: var(--text);
+        text-align: center;
+    }
+
+    .delayBtn {
+        padding: 20px;
+        font-size: 22px;
+        border-radius: 15px;
+        background: var(--inner-bg);
+        border: 2px solid #000;
+        cursor: pointer;
+        width: 70px;
+        color: var(--text);
+    }
+
+    .delayBtn.selected {
+        outline: 3px solid #fff;
+    }
+</style>
+</head>
+<body>
+
+<button id="themeToggle">Tema</button>
+
+<audio id="somDado" src="dados.m4a" preload="auto"></audio>
+
+<div class="caixa">
+    <div id="resultadoBox">RESULTADO</div>
+</div>
+
+<div class="inputs">
+    <input type="number" id="roladas" placeholder="0"> Dado de 
+    <input type="number" id="lados" placeholder="0"> Lados
+</div>
+
+<button id="rollBtn">ROLAR</button>
+<button id="resetBtn">RESETAR</button>
+
+<div class="delayContainer">
+    <div class="delayBox">
+        <div style="font-size:22px; font-weight:bold;">DELAY</div>
+        <br>
+        <button class="delayBtn" data-delay="5000">5</button>
+        <button class="delayBtn" data-delay="10000">10</button>
+    </div>
+</div>
+
+<script>
+    const resultado = document.getElementById("resultadoBox");
+    const som = document.getElementById("somDado");
+    const delayBtns = document.querySelectorAll(".delayBtn");
+    const rollBtn = document.getElementById("rollBtn");
+    const resetBtn = document.getElementById("resetBtn");
+    let delay = 5000;
+
+    delayBtns.forEach(btn => {
+        btn.addEventListener("click", () => {
+            delay = parseInt(btn.dataset.delay);
+            delayBtns.forEach(b => b.classList.remove("selected"));
+            btn.classList.add("selected");
+        });
+    });
+
+    document.querySelector('.delayBtn[data-delay="5000"]').classList.add("selected");
+
+    async function rolar() {
+        const n = parseInt(document.getElementById("roladas").value);
+        const lados = parseInt(document.getElementById("lados").value);
+
+        if (!n || !lados) {
+            resultado.innerText = "ERRO";
+            return;
+        }
+
+        for (let i = 1; i <= n; i++) {
+
+            // Toca som
+            som.currentTime = 0;
+            som.play();
+
+            const numero = Math.floor(Math.random() * lados) + 1;
+            resultado.innerText = numero;
+
+            resultado.style.transform = "scale(1.25)";
+            setTimeout(() => resultado.style.transform = "scale(1)", 150);
+
+            if (i < n) await new Promise(r => setTimeout(r, delay));
+        }
+    }
+
+    function resetar() {
+        resultado.innerText = "RESULTADO";
+        document.getElementById("roladas").value = "";
+        document.getElementById("lados").value = "";
+    }
+
+    rollBtn.onclick = rolar;
+    resetBtn.onclick = resetar;
+
+    // Enter = rolar
+    // Delete = resetar
+    document.addEventListener("keydown", e => {
+        if (e.key === "Enter") rolar();
+        if (e.key === "Delete") resetar();
+    });
+
+    document.getElementById("themeToggle").onclick = () =>
+        document.body.classList.toggle("dark");
+
+</script>
+
+</body>
+</html>
